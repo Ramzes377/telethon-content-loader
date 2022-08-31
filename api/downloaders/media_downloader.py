@@ -47,7 +47,5 @@ class MediaDownloader(BaseDownloader):
                                             position=self.files[filename], mininterval=5, leave=True):
                         await file.write(chunk)
                 return msg
-            else:
-                print('TYPE', type(msg.media))
         except Exception as e:
             print("Error with download: ", e)
