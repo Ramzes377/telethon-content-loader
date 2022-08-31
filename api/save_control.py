@@ -14,15 +14,15 @@ class SaveContentControl:
     items = {}
 
     def __init__(self, save_content: set, save_path: str = None, delete_messages: bool = False, **kw):
-        self._save_content = save_content
+        self._save_content = save_content.copy()
         self._save_path = save_path or SaveContentControl.save_path
         self._pages_num = 0
 
         create_path(self._save_path)
 
         self._download_manga = manga in save_content
-        self._save_content.discard(manga)
-        self._download_media = bool(self._save_content)
+        save_content.discard(manga)
+        self._download_media = bool(save_content)
         self._delete_messages = delete_messages
 
         self._manga_downloader = MangaDownloader(self._save_path) \
