@@ -1,11 +1,12 @@
 import asyncio
+from functools import partial
 
 from api.bot.bot_register import bot
 from api.utils import create_path, bytes_to_megabytes
-from api.ContentTypes import manga
-from api.downloaders.basedownloader import BaseDownloader
-from api.downloaders.manga_downloader import MangaDownloader
-from api.downloaders.media_downloader import MediaDownloader
+from api.content_type import manga
+from api.downloaders.base_loader import BaseDownloader
+from api.downloaders.manga_loader import MangaDownloader
+from api.downloaders.media_loader import MediaDownloader
 from api.message_deleter import MessageDeleter
 
 
@@ -25,8 +26,7 @@ class SaveContentControl:
         self._download_media = bool(save_content)
         self._delete_messages = delete_messages
 
-        self._manga_downloader = MangaDownloader(self._save_path) \
-            if self._download_manga else BaseDownloader()
+        self._manga_downloader = MangaDownloader(self._save_path) if self._download_manga else BaseDownloader()
         self._media_downloader = MediaDownloader(save_content, self._save_path, cutoff=kw.get('cutoff')) \
             if self._download_media else BaseDownloader()
         self._message_deleter = MessageDeleter() if self._delete_messages else None
@@ -43,10 +43,8 @@ class SaveContentControl:
         input(whisper)
 
     async def create_download_loop(self, session, limit=None):
-        groups = []
-        async for msg in bot.iter_messages('me', limit=limit):
-            groups.append(self._manga_downloader.download(session, msg))
-            groups.append(self._media_downloader.download(session, msg))
+        loaders = (partial(self._manga_downloader.download, session), partial(self._media_downloader.download, session))
+        groups = [loader(msg) async for msg in bot.iter_messages('me', limit=limit) for loader in loaders]
         try:
             msgs = [msg for msg in await asyncio.gather(*groups) if msg is not None]
             if self._delete_messages:
