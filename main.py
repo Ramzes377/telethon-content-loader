@@ -1,7 +1,7 @@
 import aiohttp
 
 from api.bot.bot_register import bot
-from api.ContentTypes import manga, photo, video, all_types, create_union
+from api.content_type import manga, photo, video, all_types, create_union
 from api.save_control import SaveContentControl
 from api.utils import megabytes_to_bytes
 
@@ -13,7 +13,7 @@ async def main():
     c = SaveContentControl(save_content,
                            save_path=save_path,
                            delete_messages=True,
-                           cutoff=megabytes_to_bytes(200))
+                           cutoff=megabytes_to_bytes(220))
     async with aiohttp.ClientSession(loop=bot.loop) as session:
         await c.create_download_loop(session, limit=None)
 
